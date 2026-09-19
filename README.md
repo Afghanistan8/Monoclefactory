@@ -14,6 +14,19 @@ A confident, corroborated verdict becomes **pending**. It becomes the **FINAL** 
 challenge window passes or a bonded challenge resolves. No evidence, low confidence or an invalid
 verdict never moves stake: everyone is refunded. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
+## Current deployment (Studio Next)
+
+| | |
+| --- | --- |
+| MonocleFactory | [`0x1FD888328B4Ffb3b31eD4952349EaF9413628671`](https://explorer-studio-dev.genlayer.com/address/0x1FD888328B4Ffb3b31eD4952349EaF9413628671) |
+| MonocleReputation | [`0x1a9e8F610B85a2E40399b66AE5921BCf911cC969`](https://explorer-studio-dev.genlayer.com/address/0x1a9e8F610B85a2E40399b66AE5921BCf911cC969) |
+| Demo market | [`0x5dFF8925a8539b3fE7B227426b334fe1FeEe9E7b`](https://explorer-studio-dev.genlayer.com/address/0x5dFF8925a8539b3fE7B227426b334fe1FeEe9E7b) (speed of light; round 1 decided 99%, finalized, settled, claimed; round 2 open) |
+| Challenge window | 180 s (demo) |
+| Chain | GenLayer Studio Next, 61997 |
+
+Transaction hashes are in `deploy/deployments.json`. Studio Next can reset: `npm run check:studio-next`
+tells you whether these addresses are still live.
+
 ## Contracts
 
 | File | Role | Key methods |

@@ -17,6 +17,11 @@ MonocleReputation source as constructor arguments, which are far too large to pa
 
 The addresses are whatever `deploy/deployments.json` records after **you** deploy.
 
+Current deployment: factory `0x1FD888328B4Ffb3b31eD4952349EaF9413628671`, reputation
+`0x1a9e8F610B85a2E40399b66AE5921BCf911cC969`, demo market `0x5dFF8925a8539b3fE7B227426b334fe1FeEe9E7b`
+(challenge window 180 s). To try the click path without creating a market, open the demo market:
+round 2 is open for `submit_interpretation`.
+
 ## Constructor arguments (MonocleFactory)
 
 | # | Argument | Value | Set by |
