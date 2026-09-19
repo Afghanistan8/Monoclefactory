@@ -1,0 +1,35 @@
+# Node
+node_modules/
+npm-debug.log*
+*.tsbuildinfo
+dist/
+
+# Env
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+build/
+
+# GenLayer / gltest caches
+.gltest-cache/
+artifacts/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.claude/
+
+# Keys -- never commit
+*.key
+*keystore*.json

@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "monocle"
+version = "0.1.0"
+description = "MONOCLE -- a capital-backed, claim-level, challengeable interpretation engine on GenLayer Intelligent Contracts (Studio Next / Consensus v0.6)."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.12"
+# Consensus v0.6 release family, locked together. Never mix with stable
+# Studionet tooling. See docs/STUDIO_NEXT.md.
+dependencies = [
+    "genlayer-py==0.19.0rc2",
+    "genlayer-test==0.30.0rc2",
+    "genvm-linter==0.11.1rc2",
+    "pytest>=8",
+    "python-dotenv>=1.0",
+]
+
+[tool.setuptools]
+packages = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests/direct"]
+markers = ["integration: requires a reachable GenLayer node (Studio Next or localnet)"]

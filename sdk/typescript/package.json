@@ -1,0 +1,31 @@
+{
+  "name": "@monocle/sdk",
+  "version": "0.1.0",
+  "description": "Agent SDK for MONOCLE on GenLayer Studio Next (genlayer-js 2.0 RC). Keyless reads, fee-estimated writes, strict FINALIZED + FINISHED_WITH_RETURN outcomes.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --import tsx --test src/finality.test.ts src/deployments.test.ts"
+  },
+  "dependencies": {
+    "genlayer-js": "2.0.0-rc.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

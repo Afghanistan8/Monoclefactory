@@ -1,0 +1,32 @@
+{
+  "name": "monocle-contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MONOCLE Intelligent Contracts on GenLayer (Studio Next / Consensus v0.6): MonocleFactory, Monocle, MonocleReputation, with deploy scripts, tests and TypeScript + Python agent SDKs.",
+  "license": "MIT",
+  "type": "module",
+  "workspaces": [
+    "sdk/typescript"
+  ],
+  "scripts": {
+    "lint:contracts": "genvm-lint check contracts/Monocle.py && genvm-lint check contracts/MonocleFactory.py && genvm-lint check contracts/MonocleReputation.py",
+    "test:direct": "gltest tests/direct -v",
+    "test:integration": "gltest tests/integration -v --network studio_devnet",
+    "typecheck": "tsc -p tsconfig.json --noEmit && npm run typecheck --workspace=sdk/typescript",
+    "test:sdk": "npm run test --workspace=sdk/typescript",
+    "deploy": "tsx --env-file-if-exists=.env deploy/001_deploy_monocle_system.ts",
+    "deploy:studio-next": "tsx --env-file-if-exists=.env deploy/001_deploy_monocle_system.ts studio-next",
+    "deploy:localnet": "tsx --env-file-if-exists=.env deploy/001_deploy_monocle_system.ts localnet",
+    "check:studio-next": "tsx deploy/check_studio_next.ts studio-next",
+    "seed:studio-next": "tsx --env-file-if-exists=.env deploy/002_open_test_market.ts studio-next --full"
+  },
+  "dependencies": {
+    "ethers": "^6.13.5",
+    "genlayer-js": "2.0.0-rc.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

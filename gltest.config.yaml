@@ -1,0 +1,25 @@
+# gltest configuration for MONOCLE.
+#
+# Direct-mode tests (tests/direct) run in-process against the WASI mock and
+# never touch a network. Integration tests (tests/integration) use the
+# network selected with --network; they skip cleanly if its RPC is down.
+#
+#   gltest tests/direct -v
+#   gltest tests/integration -v --network studio_devnet   # Studio Next
+#
+# studio_devnet is the genlayer-py 0.19 RC preset: chain 61997,
+# RPC https://studio-dev.genlayer.com/api (Studio Next's canonical RPC).
+# Do not add ${VAR} references here: gltest resolves every network at load
+# time and an unset variable fails even direct-mode runs.
+networks:
+  default: localnet
+  localnet: {}
+  studio_devnet:
+    default_wait_interval: 5000
+    default_wait_retries: 180
+
+paths:
+  contracts: contracts
+  artifacts: artifacts
+
+environment: .env
