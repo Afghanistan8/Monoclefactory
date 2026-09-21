@@ -307,6 +307,37 @@ def _stringify_confidence(value) -> str:
     return text if "." in text else text + ".0"
 
 
+def _meets_confidence_threshold(value) -> bool:
+    """The ONE decision-threshold test. Validators and the post-consensus
+    effects both call it, so a confidence always lands in the same bucket
+    on every node. Compared on the stored 4-place value, in Decimal."""
+    return _as_probability(_stringify_confidence(value)) >= _as_probability(str(CONFIDENCE_THRESHOLD))
+
+
+def _adjudication_outcome(verdict: dict) -> str:
+    """Thresholded outcome of an adjudication verdict, exactly as the
+    post-consensus code applies it: unchanged, decided_pending, or
+    inconclusive (any other decision, or a decided verdict below threshold)."""
+    decision = verdict.get("decision")
+    if decision == DECISION_UNCHANGED:
+        return ROUND_UNCHANGED
+    if decision == DECISION_DECIDED and _meets_confidence_threshold(verdict.get("confidence")):
+        return ROUND_DECIDED_PENDING
+    return ROUND_INCONCLUSIVE
+
+
+def _challenge_outcome(verdict: dict, original_id: str, alternative_id: str) -> str:
+    """Thresholded outcome of a challenge verdict, exactly as the
+    post-consensus code applies it."""
+    confident = verdict.get("decision") == DECISION_DECIDED and _meets_confidence_threshold(verdict.get("confidence"))
+    preferred = verdict.get("preferred_id")
+    if confident and preferred == alternative_id:
+        return CHALLENGE_UPHELD
+    if confident and preferred == original_id:
+        return CHALLENGE_REJECTED
+    return CHALLENGE_UNRESOLVED
+
+
 def _normalize_address(addr) -> str:
     """Canonical key for address-keyed storage: lowercase 0x-hex. Callers
     may pass checksummed, lowercased or padded strings, or an Address."""
@@ -789,10 +820,14 @@ def _score_verdict(parsed: dict, candidates: list, fetched_ok_urls: list) -> dic
 
 
 def _verdicts_agree(mine: dict, theirs: dict) -> bool:
-    """Validator comparison: same decision; for a decided verdict, same
+    """Validator comparison: same decision AND same thresholded outcome
+    (both finalize a winner, or both are inconclusive: confidence can
+    never straddle CONFIDENCE_THRESHOLD); for a decided verdict, same
     winner and confidence/composite within tolerance. Reasoning text is
     never required to match."""
     if not isinstance(mine, dict) or not isinstance(theirs, dict):
+        return False
+    if _adjudication_outcome(mine) != _adjudication_outcome(theirs):
         return False
     decision = mine.get("decision")
     if decision != theirs.get("decision"):
@@ -1533,7 +1568,7 @@ class Monocle(gl.contract.Contract):
             self._advance_round(now)
             return ""
 
-        if decision != DECISION_DECIDED or _unit_float(confidence) < CONFIDENCE_THRESHOLD:
+        if _adjudication_outcome({"decision": decision, "confidence": confidence}) == ROUND_INCONCLUSIVE:
             if decision == DECISION_DECIDED:
                 record["reason"] = f"confidence {confidence} below threshold {CONFIDENCE_THRESHOLD}"
             record["outcome"] = ROUND_INCONCLUSIVE
@@ -1695,6 +1730,10 @@ Respond with ONLY one JSON object; numbers MUST be quoted strings:
                 return False
             if mine.get("decision") != theirs.get("decision"):
                 return False
+            # Same thresholded outcome (upheld / rejected / unresolved):
+            # confidence can never straddle CONFIDENCE_THRESHOLD.
+            if _challenge_outcome(mine, pair_ids[0], pair_ids[1]) != _challenge_outcome(theirs, pair_ids[0], pair_ids[1]):
+                return False
             if mine.get("decision") != DECISION_DECIDED:
                 return True
             if mine.get("preferred_id") != theirs.get("preferred_id"):
@@ -1708,13 +1747,11 @@ Respond with ONLY one JSON object; numbers MUST be quoted strings:
         decision = str(result.get("decision", DECISION_NO_EVIDENCE))
         preferred = str(result.get("preferred_id", ""))
         confidence = _stringify_confidence(result.get("confidence"))
-        confident = decision == DECISION_DECIDED and _unit_float(confidence) >= CONFIDENCE_THRESHOLD
-        if confident and preferred == record["alternative_id"]:
-            outcome = CHALLENGE_UPHELD
-        elif confident and preferred == record["original_winner"]:
-            outcome = CHALLENGE_REJECTED
-        else:
-            outcome = CHALLENGE_UNRESOLVED
+        outcome = _challenge_outcome(
+            {"decision": decision, "preferred_id": preferred, "confidence": confidence},
+            record["original_winner"],
+            record["alternative_id"],
+        )
         record.update(
             {
                 "outcome": outcome,

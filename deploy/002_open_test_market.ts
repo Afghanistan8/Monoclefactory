@@ -114,6 +114,14 @@ async function main() {
     roundStatus: "open",
   });
 
+  // The factory deploys the Monocle as an internal message that lands after
+  // create_monocle finalizes: wait (gently) until its code is live.
+  for (let i = 0; ; i++) {
+    const code = await client.getContractCode(monocle).catch(() => "");
+    if (typeof code === "string" && code.length > 0) break;
+    if (i >= 24) throw new Error(`Monocle ${monocle} still has no code after 2 minutes; rerun later.`);
+    await new Promise((r) => setTimeout(r, 5000));
+  }
   const m = new MonocleCalls(client, monocle);
   const info = await m.getInfo();
   const bond = BigInt(info.min_interpretation_bond);

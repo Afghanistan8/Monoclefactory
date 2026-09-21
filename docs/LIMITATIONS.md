@@ -22,7 +22,8 @@ the hard way.
   is comparable with c0 of B" is left to the model. Nothing verifies that a claim is a faithful
   summary of its interpretation's prose.
 * **Composite and confidence are self-reported.** They are clamped, compared across validators
-  (±0.12 / ±0.15) and thresholded, but they are the model's own numbers.
+  (±0.12 / ±0.15), and validators must land on the same side of the 0.62 threshold as the
+  leader, but they are the model's own numbers.
 * **Interpretation-type semantics are prompt-level.** `stance: "refutation"` changes a
   deterministic gate. Everything else about `interpretation_type` and `schema` is context the
   model reads.

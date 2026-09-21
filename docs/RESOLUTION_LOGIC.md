@@ -103,7 +103,17 @@ Otherwise a validator whose own fetch happens to equal the prior snapshot would 
 legitimate re-judgment
 (`test_validator_rejudges_a_decided_leader_even_if_its_own_fetch_matches_prior`).
 
-`_verdicts_agree` requires the same `decision`. For `decided` it also requires:
+`_verdicts_agree` first requires the same **thresholded outcome**, computed by
+`_adjudication_outcome` (the exact function the post-consensus code uses): `unchanged`,
+`decided_pending` (decided **and** confidence ≥ 0.62) or `inconclusive`. Confidence can therefore
+never straddle the decision threshold: a leader at 0.66 (would crown a winner) and a validator at
+0.58 (would refund everyone) **disagree**, even though they are only 0.08 apart. The comparison runs
+on the stored 4-place value in `Decimal`, so 0.6199 and 0.62 also land in different buckets
+(`test_validator_disagrees_when_leader_below_threshold_and_validator_above`,
+`test_validator_disagrees_when_leader_above_threshold_and_validator_below`,
+`test_validator_threshold_bucket_is_exact_at_the_boundary`).
+
+It also requires the same `decision`. For `decided` it also requires:
 
 * the same `winner_id`;
 * `|Δconfidence| < 0.15`;
@@ -142,8 +152,12 @@ itself is enough, and all of them fail closed.
 * One nondet block runs a pairwise comparison of the original and the alternative against a
   fresh fetch. The prompt is fenced and stake-blind
   (`test_arbiter_prompt_is_stake_blind_and_fenced`).
-* The validator re-runs it independently: same decision, same `preferred_id`, and confidence
-  within 0.15.
+* The validator re-runs it independently: same decision, the same **thresholded outcome**
+  (`_challenge_outcome`: `upheld` / `rejected` / `unresolved`, the exact function the
+  post-consensus code uses, so confidence can never straddle 0.62), same `preferred_id`, and
+  confidence within 0.15
+  (`test_challenge_validator_disagrees_when_confidence_straddles_threshold_upheld_side`,
+  `test_challenge_validator_disagrees_when_confidence_straddles_threshold_unresolved_side`).
 * Outcomes:
   * `upheld` (the alternative is preferred with confidence ≥ 0.62): the pending winner becomes
     the alternative.

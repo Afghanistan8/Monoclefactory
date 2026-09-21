@@ -659,3 +659,54 @@ def test_validator_rejects_non_dict_leader_payload():
         m = deploy_monocle(vm, creator)
         _decided(m, vm, creator, alice, bob)
         assert vm.run_validator(leader_result="1-0") is False
+
+
+# ----------------------------------------------------------------------
+# Validator: confidence may never straddle the decision threshold
+# ----------------------------------------------------------------------
+
+
+def _leader_verdict(m, winner_id, confidence):
+    base = dict(m.get_round_info("1")["reasoning"])
+    for k in ("outcome", "evaluated_at", "sources_checked", "reason"):
+        base.pop(k, None)
+    base.update({"decision": "decided", "winner_id": winner_id, "confidence": confidence})
+    return base
+
+
+def test_validator_disagrees_when_leader_below_threshold_and_validator_above():
+    """Validator 0.66 (would finalize a winner) vs leader 0.58 (inconclusive):
+    the gap is inside CONFIDENCE_AGREEMENT_TOLERANCE, but the outcomes differ."""
+    vm = VMContext()
+    creator, alice, bob = create_test_addresses(3)
+    with vm.activate():
+        m = deploy_monocle(vm, creator)
+        a, _ = _decided(m, vm, creator, alice, bob, confidence="0.66")
+        assert m.get_round_info("1")["status"] == "decided_pending"
+        assert vm.run_validator(leader_result=_leader_verdict(m, a, "0.66")) is True
+        assert vm.run_validator(leader_result=_leader_verdict(m, a, "0.58")) is False
+
+
+def test_validator_disagrees_when_leader_above_threshold_and_validator_below():
+    """Validator 0.58 (inconclusive) vs leader 0.66 (would finalize a winner)."""
+    vm = VMContext()
+    creator, alice, bob = create_test_addresses(3)
+    with vm.activate():
+        m = deploy_monocle(vm, creator)
+        a, _ = _decided(m, vm, creator, alice, bob, confidence="0.58")
+        assert m.get_round_info("1")["status"] == "inconclusive"
+        assert vm.run_validator(leader_result=_leader_verdict(m, a, "0.58")) is True
+        assert vm.run_validator(leader_result=_leader_verdict(m, a, "0.66")) is False
+
+
+def test_validator_threshold_bucket_is_exact_at_the_boundary():
+    """0.6199 and 0.62 are 0.0001 apart but land in different buckets."""
+    vm = VMContext()
+    creator, alice, bob = create_test_addresses(3)
+    with vm.activate():
+        m = deploy_monocle(vm, creator)
+        a, _ = _decided(m, vm, creator, alice, bob, confidence="0.62")
+        assert m.get_round_info("1")["status"] == "decided_pending"
+        assert vm.run_validator(leader_result=_leader_verdict(m, a, "0.6199")) is False
+        assert vm.run_validator(leader_result=_leader_verdict(m, a, "0.70")) is True
+

@@ -396,3 +396,42 @@ def test_challenge_bond_is_isolated_per_round():
         buckets = m.get_vault_state()["buckets"]
         assert buckets["round:1"] == "220"
         assert buckets["round:2"] == "10"
+
+
+def _arbiter_leader(m, preferred, confidence):
+    rec = m.get_round_info("1")["challenge"]
+    return {
+        "decision": "decided",
+        "preferred_id": preferred,
+        "confidence": confidence,
+        "reasoning": "",
+        "evidence_snapshot": rec["evidence_snapshot"],
+        "evidence_hash": rec["evidence_hash"],
+    }
+
+
+def test_challenge_validator_disagrees_when_confidence_straddles_threshold_upheld_side():
+    """Validator 0.66 (upheld) vs leader 0.58 (unresolved), gap inside tolerance."""
+    vm = VMContext()
+    creator, alice, bob, carol = create_test_addresses(4)
+    with vm.activate():
+        m = deploy_monocle(vm, creator)
+        _, b = _pending(m, vm, creator, alice, bob)
+        _challenge(m, vm, carol, b)
+        assert _resolve(m, vm, alice, b, confidence="0.66") == "upheld"
+        assert vm.run_validator(leader_result=_arbiter_leader(m, b, "0.66")) is True
+        assert vm.run_validator(leader_result=_arbiter_leader(m, b, "0.58")) is False
+
+
+def test_challenge_validator_disagrees_when_confidence_straddles_threshold_unresolved_side():
+    """Validator 0.58 (unresolved) vs leader 0.66 (rejected)."""
+    vm = VMContext()
+    creator, alice, bob, carol = create_test_addresses(4)
+    with vm.activate():
+        m = deploy_monocle(vm, creator)
+        a, b = _pending(m, vm, creator, alice, bob)
+        _challenge(m, vm, carol, b)
+        assert _resolve(m, vm, alice, a, confidence="0.58") == "unresolved"
+        assert vm.run_validator(leader_result=_arbiter_leader(m, a, "0.58")) is True
+        assert vm.run_validator(leader_result=_arbiter_leader(m, a, "0.66")) is False
+        assert vm.run_validator(leader_result=_arbiter_leader(m, a, "0.6199")) is True

@@ -17,8 +17,8 @@ MonocleReputation source as constructor arguments, which are far too large to pa
 
 The addresses are whatever `deploy/deployments.json` records after **you** deploy.
 
-Current deployment: factory `0x1FD888328B4Ffb3b31eD4952349EaF9413628671`, reputation
-`0x1a9e8F610B85a2E40399b66AE5921BCf911cC969`, demo market `0x5dFF8925a8539b3fE7B227426b334fe1FeEe9E7b`
+Current deployment: factory `0x8e9F4d88895685A96998e15a2FD02EB972402869`, reputation
+`0xe6cC3c18c6cb51384740FA4E04069fc579fb6529`, demo market `0xf2b907d824BE051868f1Bf6B513579a86147732d`
 (challenge window 180 s). To try the click path without creating a market, open the demo market:
 round 2 is open for `submit_interpretation`.
 
